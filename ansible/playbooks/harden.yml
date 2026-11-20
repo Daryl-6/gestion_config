@@ -1,0 +1,9 @@
+---
+- name: Durcissement et gestion des accès
+  hosts: nova
+  become: true
+  roles:
+    - role: access
+      tags: [access]
+    - role: hardening
+      tags: [hardening]

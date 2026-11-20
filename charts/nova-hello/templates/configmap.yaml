@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nova-hello.fullname" . }}
+data:
+  APP_ENVIRONMENT: {{ .Values.app.environment | quote }}
+  APP_GREETING: {{ .Values.app.greeting | quote }}
+  index.html: |
+    <!doctype html>
+    <html lang="fr">
+    <head><meta charset="utf-8"><title>{{ .Values.app.greeting }}</title></head>
+    <body>
+      <h1>{{ .Values.app.greeting }}</h1>
+      <span class="env">{{ .Values.app.environment }}</span>
+      <p>Application v{{ .Values.app.version }}</p>
+    </body>
+    </html>

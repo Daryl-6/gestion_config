@@ -1,0 +1,42 @@
+---
+# Conformité de la couche Kubernetes : valeurs attendues injectées depuis l'inventaire
+
+service:
+  k3s: { enabled: true, running: true }
+
+command:
+  node_ready:
+    exec: "timeout -k 1s 10s k3s kubectl --request-timeout=9s get nodes --no-headers"
+    timeout: 12000
+    exit-status: 0
+    stdout: ["Ready"]
+
+  api_ready:
+    exec: "timeout -k 1s 10s k3s kubectl --request-timeout=9s get --raw=/readyz"
+    timeout: 12000
+    exit-status: 0
+    stdout: ["ok"]
+
+  http_service:
+    exec: "curl --fail --silent --show-error --max-time 5 -H 'Host: hello.{{ .Vars.env }}.nova.local' http://127.0.0.1/"
+    exit-status: 0
+    stdout: ["Hello NOVA"]
+
+  # Réplicas inventoriés et PSSI-09 : exécution non-root, système de fichiers en lecture seule
+  deployment_compliance:
+    exec: >-
+      timeout -k 1s 10s k3s kubectl --request-timeout=9s -n nova
+      get deploy nova-hello-nova-hello
+      -o jsonpath='{.status.availableReplicas}{" "}{.spec.template.spec.securityContext.runAsNonRoot}{" "}{.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem}'
+    timeout: 12000
+    exit-status: 0
+    stdout: ["{{ .Vars.replicas }} true true"]
+
+{{ if eq .Vars.netpol "true" }}
+  # PSSI-08 : isolation réseau applicative exigée en production
+  networkpolicy_present:
+    exec: "timeout -k 1s 10s k3s kubectl --request-timeout=9s -n nova get networkpolicy nova-hello-nova-hello -o name"
+    timeout: 12000
+    exit-status: 0
+    stdout: ["networkpolicy"]
+{{ end }}

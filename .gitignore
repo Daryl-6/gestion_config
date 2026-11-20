@@ -1,0 +1,15 @@
+.vagrant/
+.ssh_share/
+.ansible/
+ansible/.vault_pass_*
+ansible/.vaultgit
+ansible/inventories/group_vars/*/vault.yml
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.retry
+*.log
+__pycache__/
+*.py[cod]

@@ -1,0 +1,6 @@
+---
+# Variables communes à tous les environnements
+nova_app_name: nova-hello
+nova_namespace: nova
+access_users: [] # défaut : personne de plus que vagrant
+hardening_ssh_allow_groups: [ops] # SSH réservé au groupe ops

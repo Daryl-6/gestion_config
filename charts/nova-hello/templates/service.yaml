@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nova-hello.fullname" . }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: {{ include "nova-hello.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

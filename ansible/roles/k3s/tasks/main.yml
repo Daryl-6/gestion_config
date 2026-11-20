@@ -1,0 +1,54 @@
+---
+- name: Vérifier si k3s est déjà installé
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_bin
+
+- name: Installer k3s (serveur mono-nœud, script officiel)
+  ansible.builtin.shell: |
+    set -o pipefail
+    curl -sfL https://get.k3s.io | \
+      INSTALL_K3S_CHANNEL={{ k3s_channel }} \
+      sh -s - server \
+        --node-ip {{ ansible_host }} \
+        --tls-san {{ ansible_host }} \
+        --write-kubeconfig-mode 0600
+  args:
+    executable: /bin/bash
+  when: not k3s_bin.stat.exists
+  changed_when: true
+
+- name: Créer le répertoire kubeconfig de root
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  tags: [kubeconfig]
+
+- name: Utiliser le kubeconfig K3s par défaut pour Helm sous root
+  ansible.builtin.file:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    state: link
+    owner: root
+    group: root
+    force: true
+  tags: [kubeconfig]
+
+- name: Attendre que le nœud soit Ready
+  ansible.builtin.command: k3s kubectl wait --for=condition=Ready node --all --timeout=60s
+  register: k3s_ready
+  until: k3s_ready.rc == 0
+  retries: 12
+  delay: 10
+  changed_when: false
+
+- name: Attendre que Traefik (Ingress) soit disponible
+  ansible.builtin.command: k3s kubectl -n kube-system rollout status deploy/traefik --timeout=60s
+  register: k3s_traefik
+  until: k3s_traefik.rc == 0
+  retries: 20
+  delay: 10
+  changed_when: false

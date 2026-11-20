@@ -1,0 +1,39 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["replicaCount", "image", "app"],
+  "properties": {
+    "replicaCount": { "type": "integer", "minimum": 1, "maximum": 10 },
+    "image": {
+      "type": "object",
+      "required": ["repository", "tag"],
+      "properties": {
+        "repository": { "type": "string" },
+        "tag": { "type": "string", "not": { "enum": ["latest"] } }
+      }
+    },
+    "app": {
+      "type": "object",
+      "properties": {
+        "environment": { "type": "string", "enum": ["dev", "preprod", "prod"] },
+        "greeting": { "type": "string" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" }
+      }
+    },
+    "resources": {
+      "type": "object"
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    }
+  }
+}
